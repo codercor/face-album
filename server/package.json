@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/codercor/face-album/issues"
   },
-  "homepage": "https://github.com/codercor/face-album#readme"
+  "homepage": "https://github.com/codercor/face-album#readme",
+  "dependencies": {
+    "aws-sdk": "^2.1010.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1"
+  }
 }
