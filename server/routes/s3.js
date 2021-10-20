@@ -18,4 +18,15 @@ router.get("/getOne/:folder/:photo", async (req, res) => {
     }
 });
 
+router.get("/getAll/:folder", async (req, res) => {
+    try {
+        let photos = await s3Service.getAll(req.params.folder);
+        photos = photos.map(photo =>  {return{ key: photo.Key }} );
+        res.json(photos);
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send(error);
+    }
+})
+
 module.exports = router;
