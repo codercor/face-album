@@ -2,6 +2,7 @@ const express = require('express');
 const routes = require('./routes');
 
 const app = express();
+app.use(require('cors')());
 //public dir
 app.use("/public",express.static('public'));
 
