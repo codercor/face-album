@@ -1,4 +1,6 @@
 # face-album
+Face album is using AWS Rekognition Service.
+Face album's purpose is find your photos in s3 bucket  via  your uploaded selfie.
 # Endpoints
 ## _User_
 ### Search Face By Selfie
