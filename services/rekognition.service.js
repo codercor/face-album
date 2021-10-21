@@ -1,17 +1,14 @@
-// const { Rekognition, Service, Config,S3 } = require("aws-sdk");
-// require('dotenv').config()
-// const config = new Config({
-//     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//     region: process.env.AWS_REGION
-// })
+const { Rekognition, Service, Config, S3 } = require("aws-sdk");
+require('dotenv').config()
+const config = require('../config/aws.config')
 
-// const rekognition = new Rekognition({
-//     region: "us-east-1",
+//new rekognition
+const rekognition = new Rekognition({
+    region: config.region,
+});
 
-// });
 // rekognition.createCollection({
-//     CollectionId:"insanlar"
+//     CollectionId:"mc-faces"
 // },(err,data)=>{
 //     if(err){
 //         console.log(err);
@@ -31,18 +28,18 @@
 
 //get info for collection
 // rekognition.describeCollection({
-//     CollectionId:"suratlar",
-// },(err,data)=>{
-//     if(err){
+//     CollectionId: "insanlar",
+// }, (err, data) => {
+//     if (err) {
 //         console.log(err);
-//     }else{
+//     } else {
 //         console.log(data);
 //     }
 // }
-//     )
+// )
 
 // rekognition.deleteCollection({
-//     CollectionId:"suratlar",
+//     CollectionId:"insanlar",
 // },(err,data)=>{
 //     if(err){
 //         console.log(err);
@@ -94,6 +91,140 @@
 
 // )
 // // //önemli
+var s3 = new S3()
+let folder = "mastherchef"
+let bucket  = "face-album-bucket"
+let collectionId = folder+"-collection"
+let atesFaceId = "839575ed-f8e4-436f-ae3b-9f33ca24a647"
+let fs = require('fs')
+// rekognition.compareFaces({
+//     SourceImage:{
+//         S3Object:{
+//             Bucket:bucket,
+//             Name:folder+"/"+"ates.jpg"
+//         },
+//     }, 
+//     TargetImage:{
+//         S3Object:{
+//             Bucket:bucket,
+//             Name:folder+"/"+"yedili.jpg"
+//         },
+//     },
+// },(err,data)=>{
+//     console.log(data.FaceMatches.length);
+// })
+
+async function getPhotoKeys(folder){
+    let params = {
+        Bucket: bucket,
+        Prefix: folder
+    }
+    let data = await s3.listObjectsV2(params).promise()
+    let keys = data.Contents.map(item=>item.Key)
+    keys.shift();
+    return keys
+}
+
+async function searchPhotosBySelfie(photo,folder) {
+    let results = [];
+    try {
+        let allPhotos = await getPhotoKeys(folder);
+        for (let i = 0; i < allPhotos.length; i++) {
+            const item = allPhotos[i];
+            let result = await rekognition.compareFaces({
+                SourceImage: {
+                    Bytes:photo
+                },
+                TargetImage: {
+                    S3Object: {
+                        Bucket: bucket,
+                        Name: item
+                    }
+            }          
+            }).promise();
+            if(result.FaceMatches.length > 0) results.push(item);
+        }
+    } catch (err) {
+        console.log(err);
+    }
+    console.log(results);
+    return results;
+}
+
+module.exports = {searchPhotosBySelfie}
+
+
+// s3.listObjectsV2({
+//     Bucket: bucket,
+//     Prefix: folder,
+// }, (err, data) => {
+//     data = data.Contents.map(item => item.Key);
+//     data.shift();
+//     data.forEach(item => {
+//         console.log("mevzu bahis",item);
+//         //find photos includes ates face with atesFaceId
+//         rekognition.compareFaces({
+//             SourceImage: {
+//                 Bytes:fs.readFileSync("C:/Users/codercor/Documents/Amazon/Photos/masterchef/ates.jpg")
+//             },
+//             TargetImage: {
+//                 S3Object: {
+//                     Bucket: bucket,
+//                     Name: item
+//                 }
+//         }
+//         }, (err, data) => {
+//             if (err) console.log(err, err.stack); // an error occurred
+//             else     data.FaceMatches.length > 0 ? console.log(item) : null;
+//         })
+//     })
+// });
+
+// rekognition.indexFaces({
+//     CollectionId: collectionId,
+//     Image: {
+//         S3Object: {
+//             Bucket: bucket,
+//             Name: folder+"/ates.jpg"
+//         }
+//     },
+// }, (err, data) => {
+//     if (err) {
+//         console.log(err, err.stack); // an error occurred
+//     } else {
+//         console.log(data.FaceRecords[0].Face.FaceId);
+//     }
+
+// })
+// s3.listObjects({
+//     Bucket: "face-album-bucket"
+// }, (err, data) => {
+//     if (err) console.log(err);
+//     //filter begins with a prefix
+//     else {
+//         rekognition.createCollection({
+//             CollectionId: collectionId
+//         }, (err, data) => {
+
+//         })
+//         let photos = (data.Contents.filter(item => item.Key.indexOf(folder) == 0)).map(item => item.Key);
+//         photos.shift();
+//         photos.forEach(photo => {
+//             rekognition.indexFaces({
+//                 CollectionId: collectionId,
+//                 Image: {
+//                          S3Object: {
+//                           Bucket: "face-album-bucket", 
+//                           Name: photo
+//                          }
+//                         }
+//             },(err,data)=>{
+//                 if(err)console.log(err);
+//                 else console.log(data);
+//             });
+//         })
+//     }
+// })
 // var s3 = new S3()
 // s3.listObjects({
 //     Bucket:"photos-for-my-example"
@@ -114,7 +245,7 @@
 //                             Name:item //IMG_20210728_103228.jpg
 //                         }
 //                     }
-            
+
 //                 },
 //                 (err,data)=>{
 //                     if(err)console.log(err);
@@ -133,11 +264,11 @@
 //                                      }  
 //                                    }
 //                             )
-                          
+
 //                         })
 //                     }
 //                 }
-            
+
 //             )
 //         })
 //        setTimeout(() => {
