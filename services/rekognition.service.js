@@ -127,6 +127,7 @@ async function getPhotoKeys(folder){
 
 async function searchPhotosBySelfie(photo,folder) {
     let results = [];
+    console.log(photo,folder);
     try {
         let allPhotos = await getPhotoKeys(folder);
         for (let i = 0; i < allPhotos.length; i++) {
